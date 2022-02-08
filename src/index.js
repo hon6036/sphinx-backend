@@ -1,10 +1,10 @@
 import express from 'express'
-import { sphinxDBconnection } from './dbConnection.js'
+import { sphinxDBconnection, game1DBconnection, game2DBconnection } from './dbConnection.js'
 import mysql from 'mysql'
 
 var app = express()
 
-// input: image of item, stats, public key, name of game
+// input: image url, stats, public key, name of game
 app.post('/mintGameNFT', async(req, res) => {
 })
 
@@ -23,8 +23,7 @@ app.get('/changeGame', async(req, res) => {
     const image = 123
     const stat = 23
     const game = "maple"
-    const insert = mysql.format('insert into nft_binding_list (image, stat, game) values (?, ?, ?)', [image, stat, game]);
-    console.log(123123)
+    const insert = mysql.format('insert into nft_binding_list (image, stat, game) values (?, ?, ?)', [image, stat, game])
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err)
         conn.query(insert, function(error, data) {

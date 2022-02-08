@@ -31,7 +31,7 @@ app.get('/getItemInfo', async(req, res) => {
 app.get('/changeItemImage', async(req, res) => {
     const newImage = req.body.newImage
     const oldImage = req.body.oldImage
-    const changeItemImage = mysql.format('update nft_binding_list set image = ? where image = ?;', [789, 456] )
+    const changeItemImage = mysql.format('update nft_binding_list set image = ? where image = ?;', [newImage, oldImage] )
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err)
         conn.query(changeItemImage, function(error, data) {

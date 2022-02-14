@@ -4,7 +4,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.0.0/contr
 
 
 contract MyToken is ERC20 {
-    uint256 public constant tokenpereth = 5;  // 1 ether = token 5개 
+    uint256 public constant tokenpereth = 50;  // 1 ether = token 5개 
     address public tokenOwner;
 
     event Buy(address tokenowner, uint256 balance_owner, uint256 amount);
@@ -23,26 +23,15 @@ contract MyToken is ERC20 {
         return tokenOwner;
     }
 
-    function buytoken(uint256 amount) public {
+
+    function buy(uint value) external payable returns (address, uint256, uint256){
+        uint256 amount = msg.value * tokenpereth;
         emit Buy(tokenOwner, balanceOf(tokenOwner), amount);
+
         require(balanceOf(tokenOwner) >=  amount, "it is too much to tranasfer");
-        // approve(tokenOwner,amount);
-        // increaseAllowance(tokenOwner,amount);
-        transferFrom( tokenOwner, msg.sender, amount);
-    }
+        transferFrom(tokenOwner, msg.sender, amount);
+        return (tokenOwner,balanceOf(tokenOwner),amount);
 
-    
-
-    // function buy() external payable returns (address, uint256, uint256){
-    //     uint256 amount = msg.value * tokenpereth;
-    //     emit Buy(tokenOwner, balanceOf(tokenOwner), amount);
-
-    //     require(balanceOf(tokenOwner) >=  amount, "it is too much to tranasfer");
-    //     approve(tokenOwner,amount);
-    //     increaseAllowance(tokenOwner,amount);
-    //     transferFrom(tokenOwner, msg.sender, amount);
-    //     return (tokenOwner,balanceOf(tokenOwner),amount);
-
-    // }  
-
+    }  
+ 
 }

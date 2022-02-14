@@ -10,11 +10,13 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenId;
+    address private tokenContract;
     mapping(uint256 => uint256) private priceMap; // nfttokenID => tokenvalue
     mapping(uint256 => address) private ownerMap;  // nfttokenID => nftOwner 
     mapping(uint256 => string) private IDtoUri;
 
-    constructor() ERC721("SphinxToken","spin") { // nftname="Sphinx", nfySymbol = "spin";
+    constructor(address _tokenContract) ERC721("SphinxToken","spin") { // nftname="Sphinx", nfySymbol = "spin";
+        tokenContract = _tokenContract;
     }
 
     function getTokenID() internal returns(uint256){
@@ -50,10 +52,12 @@ import "@openzeppelin/contracts/utils/Counters.sol";
         return IDtoUri[tokenId];
     }
     
-    // function buyimgnft(uint256 tokenId) public {
-    //     require(getimgnftvalue(tokenId)>=msg.value, "not enough to buy" );
-    //     transfer(getimageowner(tokenId),amount);
-    // }
+    function buyimgnft(uint256 tokenId) payable public returns(bool) {
+        (bool check, bytes memory data) = address(tokenContract).call(abi.encodeWithSignature("buy(address,uint256)",msg.sender,msg.value));
+        (bool returnBool) = abi.decode(data, (bool));
+        transferFrom(ownerOf(tokenId),msg.sender,tokenId);
+        return check;
+    }
  
 }
 

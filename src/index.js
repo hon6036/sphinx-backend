@@ -1,10 +1,16 @@
 import express from 'express'
-import { sphinxDBconnection, game1DBconnection, game2DBconnection } from './dbConnection.js'
+import { sphinxDBconnection, game1DBconnection, game2DBconnection, getGame1DB } from './dbConnection.js'
 import mysql from 'mysql'
 import { create } from 'ipfs-http-client';
 
 const ipfs = create();
 const app = express();
+import aws from 'aws-sdk'
+import cors from 'cors'
+import getImage from './awsS3.js'
+import sharp from 'sharp'
+var app = express()
+app.use(cors())
 
 // input: image url, stats, public key, name of game - cheolhoon
 app.post('/mintGameNFT', async(req, res) => {
@@ -276,6 +282,49 @@ app.get('/buyNftImg', async(req, res) => {
         conn.release();
     });
     console.log(conne);
+})
+
+app.get('/upload', (req, res) => {
+    aws.config.loadFromPath('./awsconfig.json'); 
+    const s3 = new aws.S3();
+    var bucketParams = {
+        Bucket : "sphinx-game-image",
+    };
+    var key = {
+        Key : "game1/weapon.png",
+    }
+
+    const params = {
+        Bucket: "sphinx-game-image",
+        Key: "game1/weapon.png",
+    }
+    console.log(1234)
+    s3.getObject(params, (err, data) => {
+        if (err) {
+            console.log(err)
+        }
+        else {
+            console.log(data)
+        }
+    })
+
+    console.log(123)
+})
+
+app.post('/game1', async function(req,res) {
+    const getItemInfo = mysql.format('select * from item')
+    const game1List = await getGame1DB(game1DBconnection, getItemInfo)
+    var gameItemList = []
+    for (var i in game1List) {
+        var params = {
+            Bucket: "sphinx-game-image",
+            Key: 'game1/' + game1List[i].name + '.png',
+        }
+        var img = await getImage(params)
+        console.log(img.Body)
+        gameItemList.push([game1List[i].name, img, game1List[i].attack])
+    }
+    res.send(gameItemList)
 })
 
 app.listen(3030, () => {

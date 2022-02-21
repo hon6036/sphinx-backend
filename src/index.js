@@ -51,7 +51,7 @@ app.post('/mintGameNFT', async(req, res) => {
     });
 
     //save img_hash, stat_hash at sphinx db
-    const mintGameNFT = mysql.format('insert into nft_binding_list(image, stat, game) values(?, ?, ?);', [img_hash, stat_hash, req.body.game]);
+    const mintGameNFT = mysql.format('insert into nft_binding_list(image, stat, game, public_key) values(?, ?, ?, ?);', [img_hash, stat_hash, req.body.game, req.body.public_key]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(mintGameNFT, function(error, data) {
@@ -86,9 +86,41 @@ app.post('/saveTxHash', async(req, res) => {
     console.log(conne);
 });
 
+// Txhash store at sphinx nft_product_db, input: img_tx_hash, stat_tx_hash, img_hash - cheolhoon
+app.post('/saveProductTxHash', async(req, res) => {
+    const saveTxHash = mysql.format('update nft_product_list set img_tx_hash = ? where img_hash = ?', [req.body.img_tx_hash, req.body.img_hash]);
+    const conne = await sphinxDBconnection.getConnection(function(err, conn) {
+        console.log(err);
+        conn.query(saveTxHash, function(error, data) {
+            if (error) {
+                console.log(error);
+            }
+            res.send('success');
+        });
+        conn.release();
+    });
+    console.log(conne);
+});
+
 // User confirmed transaction, input: img_tx_hash - cheolhoon
 app.get('/confirmTx', async(req, res) => {
     const confirmTx = mysql.format('update nft_binding_list set confirm_status = 1 where img_tx_hash = ?;', [req.query.img_tx_hash]);
+    const conne = await sphinxDBconnection.getConnection(function(err, conn) { 
+        console.log(err);
+        conn.query(confirmTx, function(error, data) {
+            if (error) {
+                console.log(error);
+            }
+            res.send('success');
+        });
+        conn.release();
+    });
+    console.log(conne);
+});
+
+// User confirmed transaction upload image, input: img_tx_hash - cheolhoon
+app.get('/confirmProductTx', async(req, res) => {
+    const confirmTx = mysql.format('update nft_product_list set confirm_status = 1 where img_tx_hash = ?;', [req.query.img_tx_hash]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) { 
         console.log(err);
         conn.query(confirmTx, function(error, data) {
@@ -164,7 +196,6 @@ app.post('/mintDesignNFT', async(req, res) => {
     var attr_img_hash = '';
     var attr_img = {
         issuer: 'Sphinx',
-        game: req.body.game,
         hash: '',
     };
     //assume image exist as buffer
@@ -183,7 +214,7 @@ app.post('/mintDesignNFT', async(req, res) => {
     });
 
     //save img_hash at sphinx db
-    const mintDesignNFT = mysql.format('insert into nft_binding_list(image) values(?);', [img_hash]);
+    const mintDesignNFT = mysql.format('insert into nft_product_list(img_hash, public_key) values(?, ?);', [img_hash, req.body.public_key]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(mintDesignNFT, function(error, data) {
@@ -197,6 +228,53 @@ app.post('/mintDesignNFT', async(req, res) => {
         })
         conn.release();
     })
+    console.log(conne);
+});
+
+// get trade market nft_product_list
+// input: X - cheolhoon
+app.get('/getItemList', async(req, res) => {
+    const getItemList = mysql.format('select * from nft_product_list where confirm_status = 1;');
+    const conne = await sphinxDBconnection.getConnection(function(err, conn) {
+        console.log(err);
+        conn.query(getItemList, function(error, data) {
+            if (error) {
+                console.log(error);
+            }
+            res.send(data);
+        });
+        conn.release();
+    });
+    console.log(conne);
+});
+
+// NFT image buying at market
+// delete at nft_product_list and insert at nft_binding_list
+// input: token_id, public_key - cheolhoon
+app.get('/buyNftImg', async(req, res) => {
+    const buyNftImg = mysql.format('select * from nft_product_list where token_id = ?;', [req.query.token_id]);
+    const buyNftImg1 = mysql.format('delete from nft_product_list where token_id = ?;', [req.query.token_id]);
+    const conne = await sphinxDBconnection.getConnection(function(err, conn) {
+        console.log(err);
+        conn.query(buyNftImg, function(error, data) {
+            if (error) {
+                console.log(error);
+            }
+            conn.query(buyNftImg1, function(error, result) {
+                if (error) {
+                    console.log(error);
+                }
+                const buyNftImg2 = mysql.format('insert into nft_binding_list(image, confirm_status, img_tx_hash, public_key) values(?, 1, ?, ?);', [data[0].img_hash, data[0].img_tx_hash, req.query.public_key]);
+                conn.query(buyNftImg2, function(error, data) {
+                    if (error) {
+                        console.log(error);
+                    }
+                    res.send('success');
+                });
+            });
+        });
+        conn.release();
+    });
     console.log(conne);
 })
 

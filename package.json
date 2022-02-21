@@ -19,6 +19,7 @@
   "homepage": "https://github.com/hon6036/sphinx-backend#readme",
   "dependencies": {
     "express": "^4.17.2",
+    "ipfs-http-client": "^56.0.1",
     "mysql": "^2.18.1",
     "web3-eth": "^1.7.0"
   }

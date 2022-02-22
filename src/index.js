@@ -2,6 +2,9 @@ import express from 'express'
 import { sphinxDBconnection, game1DBconnection, game2DBconnection, getGame1DB } from './dbConnection.js'
 import mysql from 'mysql'
 import { create } from 'ipfs-http-client';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import logger from 'morgan';
 
 const ipfs = create();
 const app = express();
@@ -9,11 +12,19 @@ import aws from 'aws-sdk'
 import cors from 'cors'
 import getImage from './awsS3.js'
 import sharp from 'sharp'
-var app = express()
 app.use(cors())
+
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
 
 // input: image url, stats, public key, name of game - cheolhoon
 app.post('/mintGameNFT', async(req, res) => {
+    console.log(req.body);
     var attr_img_hash = '';
     var attr_stat_hash = '';
     var attr_img = {

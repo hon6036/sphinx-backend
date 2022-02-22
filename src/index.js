@@ -147,14 +147,13 @@ app.get('/changeItemImage', async(req, res) => {
 
 // input: address of image
 app.get('/changeItemGame', async(req, res) => {
+    const imgTokenId = req.query.img_token_id
     const newGame = req.query.newGame
     const oldGame = req.query.oldGame
-    const publicKey = req.query.public_key
-    const changeItemGame = mysql.format('update nft_binding_list set game = ? where game = ? and public_key = ?;', [newGame, oldGame, publicKey]);
-    const changeItemGame2 = mysql.format('update nft_binding_list set game = ? where game = ? and public_key = ?;', [oldGame, newGame, publicKey]);
+    const changeItemGame = mysql.format('update nft_binding_list set game = ? where game = ? and img_token_id = ?;', [newGame, oldGame, imgTokenId]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err)
-        conn.query(changeItemGame + changeItemGame2, function(error, data) {
+        conn.query(changeItemGame, function(error, data) {
             if (error) {
                 console.log(error)
             }

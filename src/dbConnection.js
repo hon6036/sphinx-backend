@@ -27,7 +27,22 @@ export const game2DBconnection = mysql.createPool ({
     multipleStatements: true,
 })
 
+export function getGame1DB(connectDB, query) {
+    return new Promise((resolve, reject) => connectDB.getConnection(function (error, connection) {
+        connection.query(query, function (error, data) {
+            if (error) {
+                return reject(error);
+            }
+            else {
+                return resolve(data);
+            }
+        });
+        connection.release();
+    }));
+}
+
 export default {
+    getGame1DB,
     sphinxDBconnection,
     game1DBconnection,
     game2DBconnection

@@ -59,7 +59,7 @@ app.post('/mintGameNFT', async(req, res) => {
 });
 
 // Img_Token_id store at sphinx db, input: token_id, game, public_key - cheolhoon
-app.post('/saveImgTokenId', async(req, res) => {
+app.get('/saveImgTokenId', async(req, res) => {
     const saveImgTokenId = mysql.format('insert into nft_binding_list(img_token_id, game, public_key) values(?, ?, ?);', [req.query.token_id, req.query.game, req.query.public_key]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
@@ -78,7 +78,7 @@ app.post('/saveImgTokenId', async(req, res) => {
 });
 
 // Stat_Token_id store at sphinx db, input: stat_token_id, img_token_id, public_key - cheolhoon
-app.post('/saveStatTokenId', async(req, res) => {
+app.get('/saveStatTokenId', async(req, res) => {
     const saveStatTokenId = mysql.format('update nft_binding_list set stat_token_id = ? where img_token_id = ? and public_key = ?;', [req.query.stat_token_id, req.query.img_token_id, req.query.public_key]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
@@ -169,7 +169,7 @@ app.post('/mintDesignNFT', async(req, res) => {
     var attr_img_hash = '';
     var attr_img = {
         issuer: 'Sphinx',
-        type: 'img',
+        game: '',
         hash: '',
     };
     //assume image exist as buffer
@@ -191,7 +191,7 @@ app.post('/mintDesignNFT', async(req, res) => {
 });
 
 // nft마켓 db에 등록하는 api input: token_id, public_key - cheolhoon
-app.post('/saveMarketTokenId', async(req, res) => {
+app.get('/saveMarketTokenId', async(req, res) => {
     const saveMarketTokenId = mysql.format('insert into nft_product_list(token_id, public_key) values(?, ?);', [req.query.token_id, req.query.public_key]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);

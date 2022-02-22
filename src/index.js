@@ -130,10 +130,11 @@ app.get('/getImgInfo', async(req, res) => {
 app.get('/changeItemImage', async(req, res) => {
     const newImage = req.query.new_img_token_id
     const oldImage = req.query.old_img_token_id
-    const changeItemImage = mysql.format('update nft_binding_list set img_token_id = ? where img_token_id = ?;', [newImage, oldImage] )
+    const changeItemImage = mysql.format('update nft_binding_list set img_token_id = ? where img_token_id = ?;', [newImage, oldImage]);
+    const changeItemImage2 = mysql.format('update nft_binding_list set img_token_id = ? where img_token_id = ?;', [oldImage, newImage]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err)
-        conn.query(changeItemImage, function(error, data) {
+        conn.query(changeItemImage + changeItemImage2, function(error, data) {
             if (error) {
                 console.log(error)
             }
@@ -149,10 +150,11 @@ app.get('/changeItemGame', async(req, res) => {
     const newGame = req.query.newGame
     const oldGame = req.query.oldGame
     const publicKey = req.query.public_key
-    const changeItemGame = mysql.format('update nft_binding_list set game = ? where game = ? and public_key = ?;', [newGame, oldGame, publicKey] )
+    const changeItemGame = mysql.format('update nft_binding_list set game = ? where game = ? and public_key = ?;', [newGame, oldGame, publicKey]);
+    const changeItemGame2 = mysql.format('update nft_binding_list set game = ? where game = ? and public_key = ?;', [oldGame, newGame, publicKey]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err)
-        conn.query(changeItemGame, function(error, data) {
+        conn.query(changeItemGame + changeItemGame2, function(error, data) {
             if (error) {
                 console.log(error)
             }

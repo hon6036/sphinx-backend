@@ -104,7 +104,7 @@ app.get('/getItemInfo', async(req, res) => {
             if (error) {
                 console.log(error)
             }
-            console.log(data)
+            res.send(data)
         })
         conn.release()
     })
@@ -119,7 +119,7 @@ app.get('/getImgInfo', async(req, res) => {
             if (error) {
                 console.log(error)
             }
-            console.log(data)
+            res.send(data)
         })
         conn.release()
     })
@@ -137,7 +137,7 @@ app.get('/changeItemImage', async(req, res) => {
             if (error) {
                 console.log(error)
             }
-            console.log(data)
+            res.send('success')
         })
         conn.release()
     })
@@ -156,7 +156,7 @@ app.get('/changeItemGame', async(req, res) => {
             if (error) {
                 console.log(error)
             }
-            console.log(data)
+            res.send('success')
         })
         conn.release()
     })

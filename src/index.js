@@ -217,7 +217,7 @@ app.post('/mintDesignNFT', async(req, res) => {
     var attr_img_url = '';
     var attr_img = {
         issuer: 'Sphinx',
-        game: req.body.game,
+        game: '',
         url: '',
     };
     var img_params = {
@@ -232,7 +232,7 @@ app.post('/mintDesignNFT', async(req, res) => {
         Key: req.body.name + '_img.json',
         Body: Buffer.from(JSON.stringify(attr_img))
     }  
-    
+
     attr_img.url = await uploadFile(img_params);
     attr_img_url = await uploadFile(attr_img_params);
 

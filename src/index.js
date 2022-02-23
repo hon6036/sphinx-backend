@@ -29,41 +29,41 @@ app.post('/mintGameNFT', async(req, res) => {
     console.log(req.body);
     
     var attr_img_url = '';
-        var attr_stat_url = '';
-        var attr_img = {
-            issuer: 'Sphinx',
-            game: req.body.game,
-            url: '',
-        };
-        var attr_stat = {
-            issuer: 'Sphinx',
-            game: req.body.game,
-            url: '',
-        };
-        var img_params = {
-            ACL: 'public-read',
-            Bucket: 'sphinx-nft-data',
-            Key: req.body.name + '.png',
-            Body: ''
-        }
-        var stat_params = {
-            ACL: 'public-read',
-            Bucket: 'sphinx-nft-data',
-            Key: req.body.name + '.json',
-            Body: Buffer.from(JSON.stringify(req.body.stat))
-        }
-        var attr_img_params = {
-            ACL: 'public-read',
-            Bucket: 'sphinx-nft-data',
-            Key: req.body.name + '_img.json',
-            Body: Buffer.from(JSON.stringify(attr_img))
-        }
-        var attr_stat_params = {
-            ACL: 'public-read',
-            Bucket: 'sphinx-nft-data',
-            Key: req.body.name + '_stat.json',
-            Body: Buffer.from(JSON.stringify(attr_stat))
-        }
+    var attr_stat_url = '';
+    var attr_img = {
+        issuer: 'Sphinx',
+        game: req.body.game,
+        url: '',
+    };
+    var attr_stat = {
+        issuer: 'Sphinx',
+        game: req.body.game,
+        url: '',
+    };
+    var img_params = {
+        ACL: 'public-read',
+        Bucket: 'sphinx-nft-data',
+        Key: req.body.name + '.png',
+        Body: ''
+    }
+    var stat_params = {
+        ACL: 'public-read',
+        Bucket: 'sphinx-nft-data',
+        Key: req.body.name + '.json',
+        Body: Buffer.from(JSON.stringify(req.body.stat))
+    }
+    var attr_img_params = {
+        ACL: 'public-read',
+        Bucket: 'sphinx-nft-data',
+        Key: req.body.name + '_img.json',
+        Body: Buffer.from(JSON.stringify(attr_img))
+    }
+    var attr_stat_params = {
+        ACL: 'public-read',
+        Bucket: 'sphinx-nft-data',
+        Key: req.body.name + '_stat.json',
+        Body: Buffer.from(JSON.stringify(attr_stat))
+    }
     request.get(req.body.img, async function (err, res, body) {
         img_params.Body = Buffer.from(body);
     
@@ -214,28 +214,48 @@ app.get('/changeItemGame', async(req, res) => {
 
 // input: image, value of image, public key - cheolhoon
 app.post('/mintDesignNFT', async(req, res) => {
-    var attr_img_hash = '';
+    var attr_img_url = '';
     var attr_img = {
         issuer: 'Sphinx',
-        game: '',
-        hash: '',
+        game: req.body.game,
+        url: '',
     };
-    //assume image exist as buffer
-    //img save at ipfs
-    await ipfs.add(req.body.img)
-    .then((response) => {
-        console.log(response);
-        img_hash = response.path;
-        attr_img.hash = response.path;
-    });
-    //img attribute save at ipfs
-    await ipfs.add(Buffer.from(JSON.stringify(attr_img)))
-    .then((response) => {
-        console.log(response);
-        attr_img_hash = response.path;
-    });
+    var img_params = {
+        ACL: 'public-read',
+        Bucket: 'sphinx-nft-data',
+        Key: req.body.name + '.png',
+        Body: ''
+    }
+    var attr_img_params = {
+        ACL: 'public-read',
+        Bucket: 'sphinx-nft-data',
+        Key: req.body.name + '_img.json',
+        Body: Buffer.from(JSON.stringify(attr_img))
+    }
+    request.get(req.body.img, async function (err, res, body) {
+        img_params.Body = Buffer.from(body);
+    
+        attr_img.url = await uploadFile(img_params);
+        attr_img_url = await uploadFile(attr_img_params);
+    })
 
-    res.send(attr_img_hash);
+    res.send({
+        attr_img_url: attr_img_url
+    });
+    // //assume image exist as buffer
+    // //img save at ipfs
+    // await ipfs.add(req.body.img)
+    // .then((response) => {
+    //     console.log(response);
+    //     img_hash = response.path;
+    //     attr_img.hash = response.path;
+    // });
+    // //img attribute save at ipfs
+    // await ipfs.add(Buffer.from(JSON.stringify(attr_img)))
+    // .then((response) => {
+    //     console.log(response);
+    //     attr_img_hash = response.path;
+    // });
 });
 
 // nft마켓 db에 등록하는 api input: token_id, public_key - cheolhoon

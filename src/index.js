@@ -224,20 +224,17 @@ app.post('/mintDesignNFT', async(req, res) => {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
         Key: req.body.name + '.png',
-        Body: ''
+        Body: req.body.img
     }
     var attr_img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
         Key: req.body.name + '_img.json',
         Body: Buffer.from(JSON.stringify(attr_img))
-    }
-    request.get(req.body.img, async function (err, res, body) {
-        img_params.Body = Buffer.from(body);
+    }  
     
-        attr_img.url = await uploadFile(img_params);
-        attr_img_url = await uploadFile(attr_img_params);
-    })
+    attr_img.url = await uploadFile(img_params);
+    attr_img_url = await uploadFile(attr_img_params);
 
     res.send({
         attr_img_url: attr_img_url

@@ -221,13 +221,16 @@ app.post('/mintDesignNFT', upload.single("img"), async(req, res) => {
     console.log(req.body)
     console.log(req.file)
     var attr_img_url = '';
+    //use time in millisecond for the file name to make each item unique
+    const img_name = (new Date()).getTime();
+    console.log(img_name);
     
     var image = fs.readFileSync(req.file.path)
 
     var img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.file.filename + req.body.public_key + '.png',
+        Key: img_name+ '_' + req.body.public_key + '.png',
         Body: image//req.body.img
     }
      //upload image to aws and get its url
@@ -242,13 +245,13 @@ app.post('/mintDesignNFT', upload.single("img"), async(req, res) => {
     var attr_img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.file.filename + '_img.json',
+        Key: img_name +"_"+req.body.public_key+ '.json',
         Body: Buffer.from(JSON.stringify(attr_img))
     } 
     attr_img_url = await uploadFile(attr_img_params);
 
     //delete the uploaded file from local folder (i.e., from uploads folder which is saved by multer)
-    fs.unlink(req.file.path, (res)=>{})
+    fs.unlink(req.file.path, ()=>{console.log('Image deleted successfully');})
     res.send({
         attr_img_url: attr_img_url
     });

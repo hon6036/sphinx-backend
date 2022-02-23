@@ -24,7 +24,7 @@ app.use(cookieParser());
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 
-// input: image url, stats, public key, name of game, item's name - cheolhoon
+// input: image url(img), shape of json stat, public_key, game's name game, item's name name - cheolhoon
 app.post('/mintGameNFT', async(req, res) => {
     console.log(req.body);
     
@@ -43,13 +43,13 @@ app.post('/mintGameNFT', async(req, res) => {
     var img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + '.png',
+        Key: req.body.name + req.body.public_key + '.png',
         Body: ''
     }
     var stat_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + '.json',
+        Key: req.body.name + req.body.public_key + '.json',
         Body: Buffer.from(JSON.stringify(req.body.stat))
     }
     var attr_img_params = {
@@ -212,7 +212,7 @@ app.get('/changeItemGame', async(req, res) => {
     console.log(conne)
 })
 
-// input: image, value of image, public key - cheolhoon
+// input: shape of buffer img, public_key, item's name name - cheolhoon
 app.post('/mintDesignNFT', async(req, res) => {
     var attr_img_url = '';
     var attr_img = {
@@ -223,7 +223,7 @@ app.post('/mintDesignNFT', async(req, res) => {
     var img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + '.png',
+        Key: req.body.name + req.body.public_key + '.png',
         Body: req.body.img
     }
     var attr_img_params = {

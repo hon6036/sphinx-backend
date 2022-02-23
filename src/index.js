@@ -4,16 +4,16 @@ import mysql from 'mysql'
 import { create } from 'ipfs-http-client';
 
 const ipfs = create();
-const app = express();
 import aws from 'aws-sdk'
 import cors from 'cors'
 import getImage from './awsS3.js'
-import sharp from 'sharp'
 var app = express()
 app.use(cors())
+app.use(express.json())
 
 // input: image url, stats, public key, name of game - cheolhoon
 app.post('/mintGameNFT', async(req, res) => {
+    console.log(req.body)
     var attr_img_hash = '';
     var attr_stat_hash = '';
     var attr_img = {
@@ -28,7 +28,7 @@ app.post('/mintGameNFT', async(req, res) => {
     }
     //assume image exist as buffer
     //img save at ipfs
-    await ipfs.add(req.body.img)
+    await ipfs.add(req.body.img.data)
     .then((response) => {
         console.log(response);
         attr_img.hash = response.path;
@@ -61,16 +61,14 @@ app.post('/mintGameNFT', async(req, res) => {
 // Img_Token_id store at sphinx db, input: token_id, game, public_key - cheolhoon
 app.post('/saveImgTokenId', async(req, res) => {
     const saveImgTokenId = mysql.format('insert into nft_binding_list(img_token_id, game, public_key) values(?, ?, ?);', [req.query.token_id, req.query.game, req.query.public_key]);
+    console.log(saveImgTokenId)
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(saveImgTokenId, function(error, data) {
             if (error) {
                 console.log(error);
             }
-            res.send({
-                img_token_id: req.query.token_id,
-                public_key: req.query.public_key
-            });
+            res.send('success');
         });
         conn.release();
     });
@@ -80,6 +78,7 @@ app.post('/saveImgTokenId', async(req, res) => {
 // Stat_Token_id store at sphinx db, input: stat_token_id, img_token_id, public_key - cheolhoon
 app.post('/saveStatTokenId', async(req, res) => {
     const saveStatTokenId = mysql.format('update nft_binding_list set stat_token_id = ? where img_token_id = ? and public_key = ?;', [req.query.stat_token_id, req.query.img_token_id, req.query.public_key]);
+    console.log(saveStatTokenId)
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(saveStatTokenId, function(error, data) {
@@ -259,6 +258,8 @@ app.get('/upload', (req, res) => {
 })
 
 app.post('/game1', async function(req,res) {
+    aws.config.loadFromPath('./awsconfig.json'); 
+    const s3 = new aws.S3();
     const getItemInfo = mysql.format('select * from item')
     const game1List = await getGame1DB(game1DBconnection, getItemInfo)
     var gameItemList = []
@@ -267,9 +268,11 @@ app.post('/game1', async function(req,res) {
             Bucket: "sphinx-game-image",
             Key: 'game1/' + game1List[i].name + '.png',
         }
-        var img = await getImage(params)
-        console.log(img.Body)
-        gameItemList.push([game1List[i].name, img, game1List[i].attack])
+        var imageurl = s3.getSignedUrl('getObject', {
+            Bucket: params.Bucket,
+            Key: params.Key
+        })
+        gameItemList.push([game1List[i].name, imageurl, game1List[i].attack, "game1"])
     }
     res.send(gameItemList)
 })

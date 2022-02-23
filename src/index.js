@@ -8,11 +8,12 @@ import logger from 'morgan';
 import request from 'request';
 import aws from 'aws-sdk'
 import cors from 'cors'
-import { getImage, uploadFile } from './awsS3.js'
-import fs from 'fs'
+import { getImage, uploadFile } from './awsS3.js';
+import multer from 'multer';
+import fs from 'fs';
 var requester = request.defaults({encoding:null})
 
-const ipfs = create();
+const upload = multer({dest: "upload/"});
 const app = express();
 
 app.use(cors())
@@ -45,13 +46,13 @@ app.post('/mintGameNFT', async(req, res) => {
     var img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + req.body.public_key + '.png',
+        Key: req.body.name + req.body.public_key + '_img.png',
         Body: ''
     }
     var stat_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + req.body.public_key + '.json',
+        Key: req.body.name + req.body.public_key + '_stat.json',
         Body: Buffer.from(JSON.stringify(req.body.stat))
     }
 
@@ -225,18 +226,21 @@ app.get('/changeItemGame', async(req, res) => {
 })
 
 // input: shape of buffer img, public_key, item's name name - cheolhoon
-app.post('/mintDesignNFT', async(req, res) => {
+app.post('/mintDesignNFT', upload.single("img"),  async(req, res) => {
     var attr_img_url = '';
     var attr_img = {
         issuer: 'Sphinx',
         game: '',
         url: '',
     };
+
+    const image = fs.readFileSync(req.file.path);
+
     var img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
         Key: req.body.name + req.body.public_key + '.png',
-        Body: req.body.img
+        Body: image
     }
 
     attr_img.url = await uploadFile(img_params);
@@ -244,11 +248,13 @@ app.post('/mintDesignNFT', async(req, res) => {
     var attr_img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + '_img.json',
+        Key: req.body.name + req.body.public_key + '_img.json',
         Body: Buffer.from(JSON.stringify(attr_img))
     }
-    
+
     attr_img_url = await uploadFile(attr_img_params);
+
+    fs.unlink(req.file.path, ()=>{console.log('Image deleted successfully');})
 
     res.send({
         attr_img_url: attr_img_url

@@ -9,7 +9,8 @@ import request from 'request';
 import aws from 'aws-sdk'
 import cors from 'cors'
 import { getImage, uploadFile } from './awsS3.js'
-import sharp from 'sharp';
+import fs from 'fs'
+var requester = request.defaults({encoding:null})
 
 const ipfs = create();
 const app = express();
@@ -64,14 +65,20 @@ app.post('/mintGameNFT', async(req, res) => {
         Key: req.body.name + '_stat.json',
         Body: Buffer.from(JSON.stringify(attr_stat))
     }
-    request.get(req.body.img, async function (err, res, body) {
-        img_params.Body = Buffer.from(body);
+
+    function handlingRequest(url) {
+        return new Promise(function (resolve, reject) {
+            requester.get(url, function (error, res, body) {
+                return resolve(body)
+            })
+        })
+    }
+    const body = await handlingRequest(req.body.img)
+    attr_img.url = await uploadFile(img_params);
+    attr_stat.url = await uploadFile(stat_params);
+    attr_img_url = await uploadFile(attr_img_params);
+    attr_stat_url = await uploadFile(attr_stat_params);
     
-        attr_img.url = await uploadFile(img_params);
-        attr_stat.url = await uploadFile(stat_params);
-        attr_img_url = await uploadFile(attr_img_params);
-        attr_stat_url = await uploadFile(attr_stat_params);
-    })
 
     res.send({
         attr_img_url: attr_img_url,
@@ -312,34 +319,9 @@ app.get('/buyNftImg', async(req, res) => {
     console.log(conne);
 })
 
-app.get('/upload', (req, res) => {
+app.post('/game1', async function(req,res) {
     aws.config.loadFromPath('./awsconfig.json'); 
     const s3 = new aws.S3();
-    var bucketParams = {
-        Bucket : "sphinx-game-image",
-    };
-    var key = {
-        Key : "game1/weapon.png",
-    }
-
-    const params = {
-        Bucket: "sphinx-game-image",
-        Key: "game1/weapon.png",
-    }
-    console.log(1234)
-    s3.getObject(params, (err, data) => {
-        if (err) {
-            console.log(err)
-        }
-        else {
-            console.log(data)
-        }
-    })
-
-    console.log(123)
-})
-
-app.post('/game1', async function(req,res) {
     const getItemInfo = mysql.format('select * from item')
     const game1List = await getGame1DB(game1DBconnection, getItemInfo)
     var gameItemList = []
@@ -348,13 +330,15 @@ app.post('/game1', async function(req,res) {
             Bucket: "sphinx-game-image",
             Key: 'game1/' + game1List[i].name + '.png',
         }
-        var img = await getImage(params)
-        console.log(img.Body)
-        gameItemList.push([game1List[i].name, img, game1List[i].attack])
+        var imageurl = s3.getSignedUrl('getObject', {
+            Bucket: params.Bucket,
+            Key: params.Key
+        })
+        gameItemList.push([game1List[i].name, imageurl, game1List[i].attack, "game1"])
     }
     res.send(gameItemList)
 })
 
 app.listen(3030, () => {
     console.log(`Example app listening on port ${3030}`)
-  })
+})

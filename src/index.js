@@ -31,6 +31,7 @@ app.post('/mintGameNFT', async(req, res) => {
     
     var attr_img_url = '';
     var attr_stat_url = '';
+
     var attr_img = {
         issuer: 'Sphinx',
         game: req.body.game,
@@ -53,6 +54,20 @@ app.post('/mintGameNFT', async(req, res) => {
         Key: req.body.name + req.body.public_key + '.json',
         Body: Buffer.from(JSON.stringify(req.body.stat))
     }
+
+    function handlingRequest(url) {
+        return new Promise(function (resolve, reject) {
+            requester.get(url, function (error, res, body) {
+                return resolve(body)
+            })
+        })
+    }
+
+    const body = await handlingRequest(req.body.img);
+
+    attr_img.url = await uploadFile(img_params);
+    attr_stat.url = await uploadFile(stat_params);
+
     var attr_img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
@@ -66,16 +81,6 @@ app.post('/mintGameNFT', async(req, res) => {
         Body: Buffer.from(JSON.stringify(attr_stat))
     }
 
-    function handlingRequest(url) {
-        return new Promise(function (resolve, reject) {
-            requester.get(url, function (error, res, body) {
-                return resolve(body)
-            })
-        })
-    }
-    const body = await handlingRequest(req.body.img)
-    attr_img.url = await uploadFile(img_params);
-    attr_stat.url = await uploadFile(stat_params);
     attr_img_url = await uploadFile(attr_img_params);
     attr_stat_url = await uploadFile(attr_stat_params);
     
@@ -233,14 +238,16 @@ app.post('/mintDesignNFT', async(req, res) => {
         Key: req.body.name + req.body.public_key + '.png',
         Body: req.body.img
     }
+
+    attr_img.url = await uploadFile(img_params);
+
     var attr_img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
         Key: req.body.name + '_img.json',
         Body: Buffer.from(JSON.stringify(attr_img))
-    }  
-
-    attr_img.url = await uploadFile(img_params);
+    }
+    
     attr_img_url = await uploadFile(attr_img_params);
 
     res.send({

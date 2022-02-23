@@ -16,12 +16,14 @@ function getImage (params) {
 function uploadFile (params) {
     aws.config.loadFromPath('./awsconfig.json');
     const s3 = new aws.S3();
-    s3.upload(params, function (err, data) {
+    return new Promise((resolve, reject) => s3.upload(params, (err, data) => {
         if (err) {
-            throw err;
+            console.log(err)
         }
-        return data.Location;
-    })
+        else {
+            return resolve(data.Location)
+        }
+    }))
 }
 
 export { getImage, uploadFile };

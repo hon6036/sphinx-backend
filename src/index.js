@@ -10,15 +10,19 @@ import aws from 'aws-sdk'
 import cors from 'cors'
 import { getImage, uploadFile } from './awsS3.js'
 import sharp from 'sharp';
+import multer from 'multer';
+import fs from 'fs'
+
+const upload = multer({dest: "upload/"})
 
 const ipfs = create();
 const app = express();
 
 app.use(cors())
 
-app.use(logger('dev'));
+// app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(bodyParser.json())
@@ -213,32 +217,42 @@ app.get('/changeItemGame', async(req, res) => {
 })
 
 // input: shape of buffer img, public_key, item's name name - cheolhoon
-app.post('/mintDesignNFT', async(req, res) => {
+app.post('/mintDesignNFT', upload.single("img"), async(req, res) => {
+    console.log(req.body)
+    console.log(req.file)
     var attr_img_url = '';
-    var attr_img = {
-        issuer: 'Sphinx',
-        game: '',
-        url: '',
-    };
+    
+    var image = fs.readFileSync(req.file.path)
+
     var img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + req.body.public_key + '.png',
-        Body: req.body.img
+        Key: req.file.filename + req.body.public_key + '.png',
+        Body: image//req.body.img
     }
+     //upload image to aws and get its url
+    const img_url = await uploadFile(img_params);
+
+    var attr_img = {
+        issuer: 'Sphinx',
+        game: '',
+        url: img_url,
+    };
+
     var attr_img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
-        Key: req.body.name + '_img.json',
+        Key: req.file.filename + '_img.json',
         Body: Buffer.from(JSON.stringify(attr_img))
-    }  
-
-    attr_img.url = await uploadFile(img_params);
+    } 
     attr_img_url = await uploadFile(attr_img_params);
 
+    //delete the uploaded file from local folder (i.e., from uploads folder which is saved by multer)
+    fs.unlink(req.file.path, (res)=>{})
     res.send({
         attr_img_url: attr_img_url
     });
+
     // //assume image exist as buffer
     // //img save at ipfs
     // await ipfs.add(req.body.img)

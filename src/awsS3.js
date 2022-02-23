@@ -13,4 +13,15 @@ function getImage (params) {
     }))
 }
 
-export default getImage
+function uploadFile (params) {
+    aws.config.loadFromPath('./awsconfig.json');
+    const s3 = new aws.S3();
+    s3.upload(params, function (err, data) {
+        if (err) {
+            throw err;
+        }
+        return data.Location;
+    })
+}
+
+export { getImage, uploadFile };

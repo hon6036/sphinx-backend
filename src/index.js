@@ -10,7 +10,7 @@ const ipfs = create();
 const app = express();
 import aws from 'aws-sdk'
 import cors from 'cors'
-import getImage from './awsS3.js'
+import { getImage, uploadFile } from './awsS3.js'
 import sharp from 'sharp'
 app.use(cors())
 
@@ -22,56 +22,75 @@ app.use(cookieParser());
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 
-// input: image url, stats, public key, name of game - cheolhoon
+// input: image url, stats, public key, name of game, item's name - cheolhoon
 app.post('/mintGameNFT', async(req, res) => {
     console.log(req.body);
-    var attr_img_hash = '';
-    var attr_stat_hash = '';
+    var attr_img_url = '';
+    var attr_stat_url = '';
     var attr_img = {
         issuer: 'Sphinx',
         game: req.body.game,
-        hash: '',
+        url: '',
     };
     var attr_stat = {
         issuer: 'Sphinx',
         game: req.body.game,
-        hash: '',
+        url: '',
+    };
+    var img_params = {
+        ACL: 'public-read',
+        Bucket: 'sphix-nft-data',
+        Key: req.body.name + '.png',
+        Body: req.body.img
     }
-    //assume image exist as buffer
-    //img save at ipfs
-    await ipfs.add(req.body.img)
-    .then((response) => {
-        console.log(response);
-        attr_img.hash = response.path;
-    });
-    //img attribute save at ipfs
-    await ipfs.add(Buffer.from(JSON.stringify(attr_img)))
-    .then((response) => {
-        console.log(response);
-        attr_img_hash = response.path;
-    });
-    //stat save at ipfs
-    await ipfs.add(req.body.stat)
-    .then((response) => {
-        console.log(response);
-        attr_stat.hash = response.path;
-    });
-    //stat attribute save at ipfs
-    await ipfs.add(Buffer.from(JSON.stringify(attr_stat)))
-    .then((response) => {
-        console.log(response);
-        attr_stat_hash = response.path;
-    });
+    var stat_params = {
+        ACL: 'public-read',
+        Bucket: 'sphix-nft-data',
+        Key: req.body.name + '.json',
+        Body: req.body.stat
+    }
 
-    res.send({
-        attr_img_hash: attr_img_hash,
-        attr_stat_hash: attr_stat_hash
-    });
+    attr_img.url = uploadFile(img_params);
+    console.log(attr_img.url);
+    // attr_stat.url = uploadFile(stat_params);
+    // attr_img_url = uploadFile();
+    // attr_stat_url = uploadFile();
+
+    // //assume image exist as buffer
+    // //img save at ipfs
+    // await ipfs.add(req.body.img)
+    // .then((response) => {
+    //     console.log(response);
+    //     attr_img.hash = response.path;
+    // });
+    // //img attribute save at ipfs
+    // await ipfs.add(Buffer.from(JSON.stringify(attr_img)))
+    // .then((response) => {
+    //     console.log(response);
+    //     attr_img_hash = response.path;
+    // });
+    // //stat save at ipfs
+    // await ipfs.add(req.body.stat)
+    // .then((response) => {
+    //     console.log(response);
+    //     attr_stat.hash = response.path;
+    // });
+    // //stat attribute save at ipfs
+    // await ipfs.add(Buffer.from(JSON.stringify(attr_stat)))
+    // .then((response) => {
+    //     console.log(response);
+    //     attr_stat_hash = response.path;
+    // });
+
+    // res.send({
+    //     attr_img_hash: attr_img_hash,
+    //     attr_stat_hash: attr_stat_hash
+    // });
 });
 
 // Img_Token_id store at sphinx db, input: token_id, game, public_key - cheolhoon
 app.get('/saveImgTokenId', async(req, res) => {
-    const saveImgTokenId = mysql.format('insert into nft_binding_list(img_token_id, game, public_key) values(?, ?, ?);', [req.query.token_id, req.query.game, req.query.public_key]);
+    const saveImgTokenId = mysql.format('insert into nft_binding_list(img_token_id, game, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.game, req.query.public_key, req.query.name]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(saveImgTokenId, function(error, data) {

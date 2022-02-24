@@ -121,17 +121,14 @@ app.post('/mintGameNFT', async(req, res) => {
 
 // Img_Token_id store at sphinx db, input: token_id, game, public_key - cheolhoon
 app.get('/saveImgTokenId', async(req, res) => {
-    const saveImgTokenId = mysql.format('insert into nft_binding_list(img_token_id, game, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.game, req.query.public_key, req.query.name]);
+    const saveImgTokenId = mysql.format('insert into nft_binding_list(img_token_id, game, public_key, name) values(?, ?, ?, ?);', [req.query.token_id, req.query.game, req.query.public_key, req.query.name]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(saveImgTokenId, function(error, data) {
             if (error) {
                 console.log(error);
             }
-            res.send({
-                img_token_id: req.query.token_id,
-                public_key: req.query.public_key
-            });
+            res.send('success');
         });
         conn.release();
     });

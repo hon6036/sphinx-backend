@@ -306,7 +306,7 @@ app.get('/getItemList', async(req, res) => {
 
 // NFT image buying at market
 // delete at nft_product_list and insert at nft_binding_list
-// input: token_id, public_key - cheolhoon
+// input: token_id, public_key, name - cheolhoon
 app.get('/buyNftImg', async(req, res) => {
     const buyNftImg1 = mysql.format('delete from nft_product_list where token_id = ?;', [req.query.token_id]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
@@ -315,7 +315,7 @@ app.get('/buyNftImg', async(req, res) => {
             if (error) {
                 console.log(error);
             }
-            const buyNftImg2 = mysql.format('insert into nft_binding_list(img_token_id, public_key) values(?, ?);', [req.query.token_id, req.query.public_key]);
+            const buyNftImg2 = mysql.format('insert into nft_binding_list(img_token_id, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.public_key, req.query.name]);
             conn.query(buyNftImg2, function(error, data) {
                 if (error) {
                     console.log(error);

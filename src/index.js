@@ -277,7 +277,7 @@ app.post('/mintDesignNFT', upload.single("img"),  async(req, res) => {
 
 // nft마켓 db에 등록하는 api input: token_id, public_key - cheolhoon
 app.get('/saveMarketTokenId', async(req, res) => {
-    const saveMarketTokenId = mysql.format('insert into nft_product_list(token_id, public_key) values(?, ?);', [req.query.token_id, req.query.public_key]);
+    const saveMarketTokenId = mysql.format('insert into nft_product_list(token_id, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.public_key, req.query.name]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(saveMarketTokenId, function(error, data) {

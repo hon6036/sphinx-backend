@@ -1,7 +1,6 @@
 import express from 'express'
 import { sphinxDBconnection, game1DBconnection, game2DBconnection, getGame1DB } from './dbConnection.js'
 import mysql from 'mysql'
-import { create } from 'ipfs-http-client';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import logger from 'morgan';

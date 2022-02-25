@@ -28,8 +28,6 @@ app.use(bodyParser.urlencoded({extended: true}))
 
 // input: image url(img), shape of json stat, public_key, game's name game, item's name name - cheolhoon
 app.post('/mintGameNFT', async(req, res) => {
-    console.log(req.body);
-    
     var attr_img_url = '';
     var attr_stat_url = '';
 
@@ -63,15 +61,11 @@ app.post('/mintGameNFT', async(req, res) => {
             })
         })
     }
-    console.log(req.body.img)
     const body = await handlingRequest(req.body.img);
-    console.log(body)
     img_params.Body = Buffer.from(body)
-    console.log(img_params.url)
-    console.log(img_params)
     attr_img.url = await uploadFile(img_params);
     attr_stat.url = await uploadFile(stat_params);
-    console.log(attr_img.url, "attr")
+
     var attr_img_params = {
         ACL: 'public-read',
         Bucket: 'sphinx-nft-data',
@@ -93,66 +87,38 @@ app.post('/mintGameNFT', async(req, res) => {
         attr_img_url: attr_img_url,
         attr_stat_url: attr_stat_url
     });
-    
-
-    // //assume image exist as buffer
-    // //img save at ipfs
-    // await ipfs.add(req.body.img)
-    // .then((response) => {
-    //     console.log(response);
-    //     attr_img.hash = response.path;
-    // });
-    // //img attribute save at ipfs
-    // await ipfs.add(Buffer.from(JSON.stringify(attr_img)))
-    // .then((response) => {
-    //     console.log(response);
-    //     attr_img_hash = response.path;
-    // });
-    // //stat save at ipfs
-    // await ipfs.add(req.body.stat)
-    // .then((response) => {
-    //     console.log(response);
-    //     attr_stat.hash = response.path;
-    // });
-    // //stat attribute save at ipfs
-    // await ipfs.add(Buffer.from(JSON.stringify(attr_stat)))
-    // .then((response) => {
-    //     console.log(response);
-    //     attr_stat_hash = response.path;
-    // });
 });
 
 // Img_Token_id store at sphinx db, input: token_id, game, public_key - cheolhoon
 app.get('/saveImgTokenId', async(req, res) => {
     const saveImgTokenId = mysql.format('insert into nft_binding_list(img_token_id, game, public_key, name) values(?, ?, ?, ?);', [req.query.token_id, req.query.game, req.query.public_key, req.query.name]);
-    console.log(saveImgTokenId)
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err);
         conn.query(saveImgTokenId, function(error, data) {
             if (error) {
-                console.log(error);
+                res.send('fail');
             }
-            res.send('success');
+            else {
+                res.send('success');
+            }
         });
         conn.release();
     });
-    console.log(conne);
 });
 
 // Stat_Token_id store at sphinx db, input: stat_token_id, img_token_id, public_key - cheolhoon
 app.get('/saveStatTokenId', async(req, res) => {
     const saveStatTokenId = mysql.format('update nft_binding_list set stat_token_id = ? where img_token_id = ? and public_key = ?;', [req.query.stat_token_id, req.query.img_token_id, req.query.public_key]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err);
         conn.query(saveStatTokenId, function(error, data) {
             if (error) {
-                console.log(error);
+                res.send('fail');
             }
-            res.send('success');
+            else {
+                res.send('success');
+            }
         });
         conn.release();
     });
-    console.log(conne);
 });
 
 // input: public key, name of game
@@ -160,34 +126,33 @@ app.get('/getItemInfo', async(req, res) => {
     const publicKey = req.query.public_key
     const game = req.query.game
     const getItemInfo = mysql.format('select * from nft_binding_list where public_key = ? and game = ?;', [publicKey, game] )
-    console.log(getItemInfo)
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err)
         conn.query(getItemInfo, function(error, data) {
             if (error) {
-                console.log(error)
+                res.send("fail");
             }
-            res.send(data)
+            else {
+                res.send(data);
+            }
         })
-        conn.release()
+        conn.release();
     })
-    console.log(conne)
 })
 
 // input: public_key
 app.get('/getImgInfo', async(req, res) => {
     const getImgInfo = mysql.format('select * from nft_binding_list where public_key = ? and stat_token_id = null;', [req.query.public_key] )
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err)
         conn.query(getImgInfo, function(error, data) {
             if (error) {
-                console.log(error)
+                res.send("fail");
             }
-            res.send(data)
+            else {
+                res.send(data);
+            }
         })
-        conn.release()
+        conn.release();
     })
-    console.log(conne)
 })
 
 // input: new_img_token_id, old_img_token_id
@@ -197,16 +162,16 @@ app.get('/changeItemImage', async(req, res) => {
     const changeItemImage = mysql.format('update nft_binding_list set img_token_id = ? where img_token_id = ?;', [newImage, oldImage]);
     const changeItemImage2 = mysql.format('update nft_binding_list set img_token_id = ? where img_token_id = ?;', [oldImage, newImage]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err)
         conn.query(changeItemImage + changeItemImage2, function(error, data) {
             if (error) {
-                console.log(error)
+                res.send("fail");
             }
-            res.send('success')
+            else {
+                res.send('success');
+            }
         })
-        conn.release()
+        conn.release();
     })
-    console.log(conne)
 })
 
 // input: img_token_id, newGame, oldGame, modified_stat
@@ -217,16 +182,16 @@ app.get('/changeItemGame', async(req, res) => {
     const modified_stat = req.query.modified_stat;
     const changeItemGame = mysql.format('update nft_binding_list set game = ?, modified_stat = ? where game = ? and img_token_id = ?;', [newGame, modified_stat, oldGame, imgTokenId]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err)
         conn.query(changeItemGame, function(error, data) {
             if (error) {
-                console.log(error)
+                res.send('fail');
             }
-            res.send('success')
+            else {
+                res.send('success');
+            }
         })
-        conn.release()
+        conn.release();
     })
-    console.log(conne)
 })
 
 // input: shape of buffer img, public_key, item's name name - cheolhoon
@@ -263,36 +228,22 @@ app.post('/mintDesignNFT', upload.single("img"),  async(req, res) => {
     res.send({
         attr_img_url: attr_img_url
     });
-    // //assume image exist as buffer
-    // //img save at ipfs
-    // await ipfs.add(req.body.img)
-    // .then((response) => {
-    //     console.log(response);
-    //     img_hash = response.path;
-    //     attr_img.hash = response.path;
-    // });
-    // //img attribute save at ipfs
-    // await ipfs.add(Buffer.from(JSON.stringify(attr_img)))
-    // .then((response) => {
-    //     console.log(response);
-    //     attr_img_hash = response.path;
-    // });
 });
 
 // nft마켓 db에 등록하는 api input: token_id, public_key - cheolhoon
 app.get('/saveMarketTokenId', async(req, res) => {
     const saveMarketTokenId = mysql.format('insert into nft_product_list(token_id, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.public_key, req.query.name]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err);
         conn.query(saveMarketTokenId, function(error, data) {
             if (error) {
-                console.log(error);
+                res.send("fail");
             }
-            res.send('success');
+            else {
+                res.send('success');
+            }
         });
         conn.release();
     });
-    console.log(conne);
 });
 
 // get trade market nft_product_list
@@ -300,12 +251,13 @@ app.get('/saveMarketTokenId', async(req, res) => {
 app.get('/getItemList', async(req, res) => {
     const getItemList = mysql.format('select * from nft_product_list;');
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err);
         conn.query(getItemList, function(error, data) {
             if (error) {
-                console.log(error);
+                res.send("fail");
             }
-            res.send(data);
+            else {
+                res.send(data);
+            }
         });
         conn.release();
     });
@@ -318,22 +270,22 @@ app.get('/getItemList', async(req, res) => {
 app.get('/buyNftImg', async(req, res) => {
     const buyNftImg1 = mysql.format('delete from nft_product_list where token_id = ?;', [req.query.token_id]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        console.log(err);
         conn.query(buyNftImg1, function(error, result) {
             if (error) {
-                console.log(error);
+                res.send("fail")
             }
             const buyNftImg2 = mysql.format('insert into nft_binding_list(img_token_id, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.public_key, req.query.name]);
             conn.query(buyNftImg2, function(error, data) {
                 if (error) {
-                    console.log(error);
+                    res.send("fail");
                 }
-                res.send('success');
+                else {
+                    res.send('success');
+                }
             });
         });
         conn.release();
     });
-    console.log(conne);
 })
 
 app.post('/game1', async function(req,res) {
@@ -361,7 +313,6 @@ app.post('/game2', async function(req,res) {
     const s3 = new aws.S3();
     const getItemInfo = mysql.format('select * from item')
     const game1List = await getGame2DB(game2DBconnection, getItemInfo)
-    console.log(game1List)
     var gameItemList = []
     for (var i in game1List) {
         var params = {

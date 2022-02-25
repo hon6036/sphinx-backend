@@ -1,7 +1,7 @@
 import mysql from 'mysql'
 
 export const sphinxDBconnection = mysql.createPool ({
-    host: '3.35.27.235',
+    host: '3.34.2.167',
     user: 'wemix',
     port: 8000,
     password: '1234',
@@ -10,7 +10,7 @@ export const sphinxDBconnection = mysql.createPool ({
 })
 
 export const game1DBconnection = mysql.createPool ({
-    host: '3.35.27.235',
+    host: '3.34.2.167',
     user: 'wemix',
     port: 8000,
     password: '1234',
@@ -19,7 +19,7 @@ export const game1DBconnection = mysql.createPool ({
 })
 
 export const game2DBconnection = mysql.createPool ({
-    host: '3.35.27.235',
+    host: '3.34.2.167',
     user: 'wemix',
     port: 8000,
     password: '1234',

@@ -41,7 +41,22 @@ export function getGame1DB(connectDB, query) {
     }));
 }
 
+export function getGame2DB(connectDB, query) {
+    return new Promise((resolve, reject) => connectDB.getConnection(function (error, connection) {
+        connection.query(query, function (error, data) {
+            if (error) {
+                return reject(error);
+            }
+            else {
+                return resolve(data);
+            }
+        });
+        connection.release();
+    }));
+}
+
 export default {
+    getGame2DB,
     getGame1DB,
     sphinxDBconnection,
     game1DBconnection,

@@ -141,7 +141,7 @@ app.get('/getItemInfo', async(req, res) => {
 
 // input: public_key
 app.get('/getImgInfo', async(req, res) => {
-    const getImgInfo = mysql.format('select * from nft_binding_list where public_key = ? and stat_token_id = null;', [req.query.public_key] )
+    const getImgInfo = mysql.format('select * from nft_binding_list where public_key = ? and stat_token_id = 0;', [req.query.public_key] )
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         conn.query(getImgInfo, function(error, data) {
             if (error) {
@@ -159,10 +159,12 @@ app.get('/getImgInfo', async(req, res) => {
 app.get('/changeItemImage', async(req, res) => {
     const newImage = req.query.new_img_token_id
     const oldImage = req.query.old_img_token_id
-    const changeItemImage = mysql.format('update nft_binding_list set img_token_id = ? where img_token_id = ?;', [newImage, oldImage]);
+    const statId = req.query.stat_id
+    console.log(req.query)
     const changeItemImage2 = mysql.format('update nft_binding_list set img_token_id = ? where img_token_id = ?;', [oldImage, newImage]);
+    const changeItemImage = mysql.format('update nft_binding_list set img_token_id = ? where stat_token_id = ?;', [newImage, statId]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
-        conn.query(changeItemImage + changeItemImage2, function(error, data) {
+        conn.query(changeItemImage2+changeItemImage, function(error, data) {
             if (error) {
                 res.send("fail");
             }

@@ -1,7 +1,6 @@
 import express from 'express'
 import { sphinxDBconnection, game1DBconnection, game2DBconnection, getGame1DB, getGame2DB } from './dbConnection.js'
 import mysql from 'mysql'
-import { create } from 'ipfs-http-client';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import logger from 'morgan';
@@ -175,6 +174,7 @@ app.get('/getItemInfo', async(req, res) => {
     console.log(conne)
 })
 
+// input: public_key
 app.get('/getImgInfo', async(req, res) => {
     const getImgInfo = mysql.format('select * from nft_binding_list where public_key = ? and stat_token_id = null;', [req.query.public_key] )
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
@@ -190,7 +190,7 @@ app.get('/getImgInfo', async(req, res) => {
     console.log(conne)
 })
 
-// input: address of old image, stats, address of new image
+// input: new_img_token_id, old_img_token_id
 app.get('/changeItemImage', async(req, res) => {
     const newImage = req.query.new_img_token_id
     const oldImage = req.query.old_img_token_id
@@ -209,12 +209,13 @@ app.get('/changeItemImage', async(req, res) => {
     console.log(conne)
 })
 
-// input: address of image
+// input: img_token_id, newGame, oldGame, modified_stat
 app.get('/changeItemGame', async(req, res) => {
     const imgTokenId = req.query.img_token_id
-    const newGame = req.query.newGame
-    const oldGame = req.query.oldGame
-    const changeItemGame = mysql.format('update nft_binding_list set game = ? where game = ? and img_token_id = ?;', [newGame, oldGame, imgTokenId]);
+    const newGame = req.query.newGame;
+    const oldGame = req.query.oldGame;
+    const modified_stat = req.query.modified_stat;
+    const changeItemGame = mysql.format('update nft_binding_list set game = ?, modified_stat = ? where game = ? and img_token_id = ?;', [newGame, modified_stat, oldGame, imgTokenId]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err)
         conn.query(changeItemGame, function(error, data) {
@@ -280,7 +281,7 @@ app.post('/mintDesignNFT', upload.single("img"),  async(req, res) => {
 
 // nft마켓 db에 등록하는 api input: token_id, public_key - cheolhoon
 app.get('/saveMarketTokenId', async(req, res) => {
-    const saveMarketTokenId = mysql.format('insert into nft_product_list(token_id, public_key) values(?, ?);', [req.query.token_id, req.query.public_key]);
+    const saveMarketTokenId = mysql.format('insert into nft_product_list(token_id, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.public_key, req.query.name]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
         console.log(err);
         conn.query(saveMarketTokenId, function(error, data) {
@@ -313,7 +314,7 @@ app.get('/getItemList', async(req, res) => {
 
 // NFT image buying at market
 // delete at nft_product_list and insert at nft_binding_list
-// input: token_id, public_key - cheolhoon
+// input: token_id, public_key, name - cheolhoon
 app.get('/buyNftImg', async(req, res) => {
     const buyNftImg1 = mysql.format('delete from nft_product_list where token_id = ?;', [req.query.token_id]);
     const conne = await sphinxDBconnection.getConnection(function(err, conn) {
@@ -322,7 +323,7 @@ app.get('/buyNftImg', async(req, res) => {
             if (error) {
                 console.log(error);
             }
-            const buyNftImg2 = mysql.format('insert into nft_binding_list(img_token_id, public_key) values(?, ?);', [req.query.token_id, req.query.public_key]);
+            const buyNftImg2 = mysql.format('insert into nft_binding_list(img_token_id, public_key, name) values(?, ?, ?);', [req.query.token_id, req.query.public_key, req.query.name]);
             conn.query(buyNftImg2, function(error, data) {
                 if (error) {
                     console.log(error);
